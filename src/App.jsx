@@ -1,4 +1,15 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+
+/* ── LOCAL STORAGE HELPERS ──────────────────────────────────── */
+function load(key, fallback) {
+  try {
+    const v = localStorage.getItem(key);
+    return v ? JSON.parse(v) : fallback;
+  } catch { return fallback; }
+}
+function save(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch {}
+}
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, AreaChart, Area } from "recharts";
 
 /* ── DESIGN TOKENS ─────────────────────────────────────────── */
@@ -157,10 +168,16 @@ const NAV = [
 ═══════════════════════════════════════════════════════════════ */
 export default function App() {
   const [tab, setTab]             = useState("overview");
-  const [transactions, setTx]     = useState(initTransactions);
-  const [savings, setSavings]     = useState(initSavings);
-  const [debts, setDebts]         = useState(initDebts);
-  const [extra, setExtra]         = useState(300);
+  const [transactions, setTx]     = useState(() => load("finio_transactions", initTransactions));
+  const [savings, setSavings]     = useState(() => load("finio_savings", initSavings));
+  const [debts, setDebts]         = useState(() => load("finio_debts", initDebts));
+  const [extra, setExtra]         = useState(() => load("finio_extra", 300));
+
+  // Auto-save to localStorage whenever data changes
+  useEffect(() => save("finio_transactions", transactions), [transactions]);
+  useEffect(() => save("finio_savings", savings), [savings]);
+  useEffect(() => save("finio_debts", debts), [debts]);
+  useEffect(() => save("finio_extra", extra), [extra]);
   const [search, setSearch]       = useState("");
   const [txFilter, setTxFilter]   = useState("all");
   const [showAddTx, setAddTx]     = useState(false);
